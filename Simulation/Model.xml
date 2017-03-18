@@ -1,0 +1,151 @@
+<!--
+	File: MainProgram.py
+	Author: Jose Perez <josegperez@mail.com>
+	Version: Model v5
+
+	This file is part of the CC3D set-up routines.
+-->
+<CompuCell3D Revision="20160512" Version="3.7.5">   
+	<!--
+		Potts Model Set-up
+		For more information please read the CC3D documentation.
+	-->
+   <Potts>     
+      <Dimensions x="100" y="100" z="50"/> <!-- Size of 3D model (e.g. 100x100x50) -->
+      <Steps>250</Steps> <!-- Total simulation time in MCS -->
+      <Temperature>10.0</Temperature>
+      <NeighborOrder>2</NeighborOrder>
+   </Potts>
+ 
+	<!--
+		VolumeLocalFlex Plugin
+		
+		Used for growth and mitosis.
+		For more information please read the CC3D documentation and look at the sample projects.
+	-->
+   <Plugin Name="VolumeLocalFlex" />
+   
+   <!--
+		ExternalPotential Plugin
+		
+		Used for semi-random movement to allow some cells to move faster than others.
+		Requires more testing.
+   -->
+   <Plugin Name="ExternalPotential"/>
+   
+   <!--
+		CellType Plugin
+	
+		Defines the cell types used in this project.
+		For more information please read the CC3D documentation.
+	-->
+   <Plugin Name="CellType">
+      <CellType TypeId="0" TypeName="Medium"/>
+      <CellType TypeId="1" TypeName="APC"/>
+      
+      <CellType TypeId="2" TypeName="TREG_INACTIVE"/>
+      <CellType TypeId="3" TypeName="TREG_ACTIVE"/>
+      <CellType TypeId="4" TypeName="TREG_ANERGIC"/>
+      
+      <CellType TypeId="5" TypeName="TCONV_INACTIVE"/>
+      <CellType TypeId="6" TypeName="TCONV_ACTIVE"/>
+      <CellType TypeId="7" TypeName="TCONV_ANERGIC"/>      
+   </Plugin>
+
+   <!-- 
+		UniformInitializer Steppable
+		
+		The uniform initializer spreads out the given cells randomly at even intervals (specified by gap size).
+		We define an area for the cells to live in as a box made from 2 given points.
+	-->
+    <Steppable Type="UniformInitializer">
+       <Region>
+          <BoxMin x="5" y="5" z="16"/>
+          <BoxMax x="95" y="95" z="34"/>
+          <Gap>4</Gap> <!-- How much space is between the cells -->
+          <Width>3</Width>
+          <Types>APC,TREG_INACTIVE,TCONV_INACTIVE</Types>
+       </Region>
+    </Steppable>
+
+	
+	<!-- 
+		RandomFieldInitializer Steppable
+		
+		This one might be used instead of the one above. Just comment that one out and uncomment this one.
+		The random field initializer allows you to specify how many cells of each type you want in the model. 
+		
+		In this one we have 200 APCs, 200 TREG_INACTIVE, 200 TCONV_INACTIVE cells
+		ncells must match the count (600 in this case)
+	-->
+	<!--
+	<Steppable Type="RandomFieldInitializer">
+		<offset x="10" y="10" z="25"/>
+		<types>APC,TREG_INACTIVE,TCONV_INACTIVE</types>
+		<order>4</order>
+		<growsteps>10</growsteps>
+		<bias>200, 200, 200</bias>
+		<ncells>600</ncells>
+		<showStats/>
+	</Steppable>-->
+ 
+	<!--
+		CenterOfMass Plugin
+		
+		Please see the CC3D documentation for more information.
+	-->
+   <Plugin Name="CenterOfMass" />
+   
+   <!--
+		NeighborTracker Plugin
+		
+		Used to enable interaction of APCs and TCells when they close enough.
+		Please see the CC3D documentation for more information.
+	-->
+   <Plugin Name="NeighborTracker" />
+   
+   <!--
+		Chemotaxis Plugin
+		This is used for the movement of cells to be semi-random.
+		Specifically, it attracts inactive TCells to APCs
+		
+		The way it works is that we create an invisible chemical called TATTRACT.
+		When present inactive TCells move towards APCs
+   -->
+   <Plugin Name="Chemotaxis">
+      <ChemicalField Name="TATTRACT" Source="FastDiffusionSolver2DFE">
+         <ChemotaxisByType ChemotactTowards="APC" Lambda="5.0" Type="TREG_INACTIVE"/>
+         <ChemotaxisByType ChemotactTowards="APC" Lambda="5.0" Type="TCONV_INACTIVE"/>
+      </ChemicalField>
+   </Plugin>
+   
+   <!--
+		Secretion Plugin
+		This is used by the Chemotaxis plugin.
+		
+		The way it works is by having APCs secrete a chemical called TATTRACT.
+		Please see the Chemotaxis plugin for more information.
+	-->
+   <Plugin Name="Secretion">
+      <Field Name="TATTRACT">
+         <Secretion Type="APC">.2</Secretion>
+      </Field>
+   </Plugin>
+   
+   <!-- 
+		DiffusionSolverFE Steppable
+		
+		Required for Chemotaxis and Secretion
+		Please see the above plugins for more info.
+	-->
+	<Steppable Type="DiffusionSolverFE">
+	 <DiffusionField>
+		<DiffusionData>
+			<FieldName>TATTRACT</FieldName>
+			<DiffusionConstant>0.10</DiffusionConstant>
+			<DecayConstant>0.000</DecayConstant>       
+		</DiffusionData>
+	</DiffusionField>
+	</Steppable>
+	
+</CompuCell3D>

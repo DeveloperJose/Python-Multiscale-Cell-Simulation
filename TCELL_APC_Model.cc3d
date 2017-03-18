@@ -1,0 +1,8 @@
+<Simulation version="3.6.2">
+   <XMLScript Type="XMLScript">Simulation/Model.xml</XMLScript>
+   <PythonScript Type="PythonScript">Simulation/MainProgram.py</PythonScript>
+   <Resource Type="Python">Simulation/Cell.py</Resource>
+   <Resource Type="Python">Simulation/Config.py</Resource>
+   <Resource Type="Python">Simulation/Data.py</Resource>
+   <Resource Type="Python">Simulation/Steppables.py</Resource>
+</Simulation>
